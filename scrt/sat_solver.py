@@ -17,6 +17,21 @@ class PropLogicBase:
     def __invert__(self):
         return PropLogicExpression('not', self)
 
+    def is_paradox(self):
+        return SatSolver.paradox(self)
+
+    def solve(self,
+              minisat_cmd='minisat',
+              input_file_name='',
+              output_file_name='',
+              clear_files=True
+              ):
+        return SatSolver.solve(self,
+                               minisat_cmd=minisat_cmd,
+                               input_file_name=input_file_name,
+                               output_file_name=output_file_name,
+                               clear_files=clear_files)
+
 
 class PropLogicAtom(PropLogicBase):
     def __init__(self, name=""):
@@ -119,7 +134,13 @@ class SatSolver:
         return result, result_variables
 
     @classmethod
+    def paradox(cls, expression):
+        return not cls.solve(expression)[0]
+
+    @classmethod
     def ask(cls, knowledge_base, question):
+        if cls.paradox(knowledge_base):
+            raise Exception('KnowledgeBase contains paradox')
         tautology = not cls.solve(knowledge_base & (~question))[0]
         if tautology:
             return True
