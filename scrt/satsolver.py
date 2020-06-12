@@ -13,28 +13,10 @@ class SatSolver:
         if external_solver is None:
             satisfiable, allocation = cls.dpll(cnf)
         else:
-            file_name = str(uuid.uuid4())
-            input_file_name = file_name + '.cnf'
-            output_file_name = file_name + '.out'
-
-            with open(input_file_name, 'w') as fp:
-                fp.write('p cnf ' + str(atom_number) + ' ' + str(len(cnf)) + '\n' + '\n'.join([' '.join([str(j) for j in i]) + ' 0' for i in cnf]))
-
-            try:
-                subprocess.check_output(external_solver + ' ' + input_file_name + ' ' + output_file_name, shell=True)
-            except:
-                pass
-
-            with open(output_file_name, 'r') as fp:
-                satisfiable = fp.readline().rstrip() == 'SAT'
-                allocation = set([int(r) for r in fp.readline().split()[:-1]])
-
-            os.remove(input_file_name)
-            os.remove(output_file_name)
+            satisfiable, allocation = cls.external_solver(cnf, atom_number, external_solver)
 
         if satisfiable is True:
-            allocation = dict([(name, True if num in allocation else False) for (name, num) in named_atoms.items()])
-            return True, allocation
+            return True, dict([(name, True if num in allocation else False) for (name, num) in named_atoms.items()])
         else:
             return False, None
 
@@ -151,3 +133,25 @@ class SatSolver:
 
             stack.append((allocation_v_is_false, cnf_v_is_false))
         return False, None
+
+    @classmethod
+    def external_solver(cls, cnf, atom_number, external_solver):
+        file_name = str(uuid.uuid4())
+        input_file_name = file_name + '.cnf'
+        output_file_name = file_name + '.out'
+
+        with open(input_file_name, 'w') as fp:
+            fp.write('p cnf ' + str(atom_number) + ' ' + str(len(cnf)) + '\n' + '\n'.join([' '.join([str(j) for j in i]) + ' 0' for i in cnf]))
+
+        try:
+            subprocess.check_output(external_solver + ' ' + input_file_name + ' ' + output_file_name, shell=True)
+        except:
+            pass
+
+        with open(output_file_name, 'r') as fp:
+            satisfiable = fp.readline().rstrip() == 'SAT'
+            allocation = set([int(r) for r in fp.readline().split()[:-1]])
+
+        os.remove(input_file_name)
+        os.remove(output_file_name)
+        return satisfiable, allocation
