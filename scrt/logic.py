@@ -1,5 +1,6 @@
 import scrt.satsolver
 
+
 class LogicalExpressionBase:
     def __eq__(self, other):
         return type(self) == type(other)
@@ -47,6 +48,7 @@ class LogicalAnd(LogicalExpressionBase):
     def __str__(self):
         return "(" + str(self.left) + "&" + str(self.right) + ")"
 
+
 class LogicalOr(LogicalExpressionBase):
     def __init__(self, left, right):
         self.left = left
@@ -58,6 +60,7 @@ class LogicalOr(LogicalExpressionBase):
     def __str__(self):
         return "(" + str(self.left) + "|" + str(self.right) + ")"
 
+
 class LogicalImplies(LogicalExpressionBase):
     def __init__(self, left, right):
         self.left = left
@@ -68,6 +71,7 @@ class LogicalImplies(LogicalExpressionBase):
 
     def __str__(self):
         return "(" + str(self.left) + ">>" + str(self.right) + ")"
+
 
 class LogicalNot(LogicalExpressionBase):
     def __init__(self, target):
