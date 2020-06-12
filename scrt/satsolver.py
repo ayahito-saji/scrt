@@ -4,12 +4,13 @@ import subprocess
 import copy
 import scrt.logic
 
+
 class SatSolver:
     @classmethod
     def solve(cls, expression, external_solver=None):
         cnf, atom_number, named_atoms = cls.tseitin_convert(expression)
 
-        if external_solver == None:
+        if external_solver is None:
             satisfiable, allocation = cls.dpll(cnf)
         else:
             file_name = str(uuid.uuid4())
@@ -22,22 +23,20 @@ class SatSolver:
             try:
                 subprocess.check_output(external_solver + ' ' + input_file_name + ' ' + output_file_name, shell=True)
             except:
-                os.remove(input_file_name)
-                raise Exception("An error has occurred in command '" + external_solver + "', please check whether external solver is installed correctly or not.")
+                pass
 
             with open(output_file_name, 'r') as fp:
-                satisfiable = output_file.readline().rstrip() == 'SATISFIABLE'
-                allocation = set([int(r) for r in output_file.readline().split()[:1]])
+                satisfiable = fp.readline().rstrip() == 'SAT'
+                allocation = set([int(r) for r in fp.readline().split()[:-1]])
 
             os.remove(input_file_name)
             os.remove(output_file_name)
 
-        if satisfiable == True:
-            allocation = dict([(name, True if id in allocation else False) for (name, id) in named_atoms.items()])
+        if satisfiable is True:
+            allocation = dict([(name, True if num in allocation else False) for (name, num) in named_atoms.items()])
             return True, allocation
         else:
             return False, None
-
 
     @classmethod
     def tseitin_convert(cls, expression):
@@ -49,7 +48,7 @@ class SatSolver:
             nonlocal named_atoms
 
             if type(clause) == scrt.logic.LogicalAtom:
-                if not clause.name in named_atoms:
+                if clause.name not in named_atoms:
                     atom_counter += 1
                     named_atoms[clause.name] = atom_counter
                 return named_atoms[clause.name], []
@@ -106,7 +105,7 @@ class SatSolver:
                         break
                     elif -unit_target in cnf[i]:
                         cnf[i].remove(-unit_target)
-                if is_deleted == True:
+                if is_deleted is True:
                     cnf.pop(i)
                 else:
                     i += 1
@@ -114,17 +113,17 @@ class SatSolver:
             if len(cnf) == 0:
                 return True, allocation
 
-            is_unsatisfiable = False
+            unsatisfiable = False
             for clause in cnf:
                 if len(clause) == 0:
-                    is_unsatisfiable = True
+                    unsatisfiable = True
                     break
-            if is_unsatisfiable == True:
+            if unsatisfiable is True:
                 continue
 
             v = list(cnf[0])[0]
             # the case if v is true
-            allocation_v_is_true = copy.copy(allocation) | { v }
+            allocation_v_is_true = copy.copy(allocation) | {v, }
             cnf_v_is_true = copy.deepcopy(cnf)
 
             i = 0
@@ -138,7 +137,7 @@ class SatSolver:
             stack.append((allocation_v_is_true, cnf_v_is_true))
 
             # the case if v is false
-            allocation_v_is_false = copy.copy(allocation) | { -v }
+            allocation_v_is_false = copy.copy(allocation) | {-v, }
             cnf_v_is_false = copy.deepcopy(cnf)
 
             i = 0
