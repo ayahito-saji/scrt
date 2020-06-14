@@ -20,14 +20,11 @@ class LogicalExpressionBase:
     def __invert__(self):
         return LogicalNot(self)
 
-    def solve(self, external_solver=None):
-        return scrt.satsolver.SatSolver.solve(self, external_solver)
-
 
 class LogicalAtom(LogicalExpressionBase):
     def __init__(self, name=""):
         if name == "":
-            raise Exception('A logical atom requires name')
+            raise Exception("A logical atom requires name")
         self.name = name
 
     def __eq__(self, other):

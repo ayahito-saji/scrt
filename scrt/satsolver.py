@@ -67,30 +67,35 @@ class SatSolver:
 
     @classmethod
     def dpll(cls, cnf):
-        stack = [(set(), cnf)]
+        stack = [(set(), copy.deepcopy(cnf))]
 
         while len(stack) > 0:
             allocation, cnf = stack.pop()
 
             # unit-rule
-            unit_targets = []
-            for clause in cnf:
-                if len(clause) == 1:
-                    unit_targets.append(list(clause)[0])
-            allocation = allocation | set(unit_targets)
-            i = 0
-            while i < len(cnf):
-                is_deleted = False
-                for unit_target in unit_targets:
-                    if unit_target in cnf[i]:
-                        is_deleted = True
-                        break
-                    elif -unit_target in cnf[i]:
-                        cnf[i].remove(-unit_target)
-                if is_deleted is True:
-                    cnf.pop(i)
-                else:
-                    i += 1
+            is_continue = True
+            while is_continue:
+                is_continue = False
+                unit_targets = []
+                for clause in cnf:
+                    if len(clause) == 1:
+                        unit_targets.append(list(clause)[0])
+                allocation = allocation | set(unit_targets)
+                i = 0
+                while i < len(cnf):
+                    is_deleted = False
+                    for unit_target in unit_targets:
+                        if unit_target in cnf[i]:
+                            is_deleted = True
+                            break
+                        elif -unit_target in cnf[i]:
+                            cnf[i].remove(-unit_target)
+                            if len(cnf[i]) == 1:
+                                is_continue = True
+                    if is_deleted is True:
+                        cnf.pop(i)
+                    else:
+                        i += 1
 
             if len(cnf) == 0:
                 return True, allocation

@@ -1,10 +1,11 @@
 from scrt.logic import LogicalAtom
+from scrt.satsolver import SatSolver
 
 p = LogicalAtom('p')
 q = LogicalAtom('q')
 
-expr = p & ~p
+expr = (p >> q) & p
 
 print(expr)
-satisfiable, allocation = expr.solve()
-print(satisfiable, allocation)
+result, allocation = SatSolver.solve(expr)
+print(result, allocation)
