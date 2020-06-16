@@ -91,8 +91,10 @@ class All(scrt.logic.LogicalExpressionBase):
             raise Exception("A predicate logical universal instantiation requires variable")
         self.variable = variable
         self.expression = expression
+
     def __str__(self):
         return "∀" + str(self.variable) + str(self.expression)
+
 
 class Exists(scrt.logic.LogicalExpressionBase):
     def __init__(self, variable, expression):
@@ -100,5 +102,6 @@ class Exists(scrt.logic.LogicalExpressionBase):
             raise Exception("A predicate logical universal instantiation requires variable")
         self.variable = variable
         self.expression = expression
+
     def __str__(self):
         return "∃" + str(self.variable) + str(self.expression)
