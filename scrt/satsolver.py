@@ -62,6 +62,9 @@ class SatSolver:
                 z, Z = tau(clause.right)
                 return x, [{x, y}, {x, -z}, {-x, -y, z}] + Y + Z
 
+            else:
+                raise Exception("Invalid logical expression ("+str(type(clause))+")")
+
         x, X = tau(expression)
         return [{x}] + X, atom_counter, named_atoms
 
