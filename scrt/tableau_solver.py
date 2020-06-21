@@ -1,9 +1,18 @@
 import copy
 import scrt.logic
 
+from graphviz import Graph
+
 class TableauSolver:
     @classmethod
-    def solve(cls, expression):
+    def solve(cls, expression, graphviz=False, graph_filename='tableau'):
+
+        if graphviz is True:
+            graph = Graph(format="png")
+            graph.attr("node", color='white')
+        else:
+            graph = None
+
         def delta(nodes, exprs):
             if len(nodes) == 0:
                 nodes.append([])
@@ -34,9 +43,11 @@ class TableauSolver:
             [start_expr]
         ]
 
+        no_counter = 0
+
         while len(nodes) > 0:
-            node = nodes.pop()
-            print(", ".join([str(expr) for expr in node]))
+            # print([", ".join([str(expr) for expr in node]) for node in nodes])
+            node = nodes.pop(0)
 
             new_nodes = []
             atom_values = {}
@@ -47,25 +58,25 @@ class TableauSolver:
                 if type(expr) == scrt.logic.LogicalNot:
                     not_expr = expr.target
                     if type(not_expr) == scrt.logic.LogicalNot:
-                        delta(new_nodes, [not_expr.target])
+                        new_nodes = delta(new_nodes, [not_expr.target])
                         is_changed = True
 
                     elif type(not_expr) == scrt.logic.LogicalAnd:
-                        delta(new_nodes, [~not_expr.left, ~not_expr.right])
+                        new_nodes = delta(new_nodes, [~not_expr.left, ~not_expr.right])
                         is_changed = True
 
                     elif type(not_expr) == scrt.logic.LogicalOr:
-                        delta(new_nodes, [~not_expr.left])
-                        delta(new_nodes, [~not_expr.right])
+                        new_nodes = delta(new_nodes, [~not_expr.left])
+                        new_nodes = delta(new_nodes, [~not_expr.right])
                         is_changed = True
 
                     elif type(not_expr) == scrt.logic.LogicalImplies:
-                        delta(new_nodes, [not_expr.left])
-                        delta(new_nodes, [~not_expr.right])
+                        new_nodes = delta(new_nodes, [not_expr.left])
+                        new_nodes = delta(new_nodes, [~not_expr.right])
                         is_changed = True
 
                     elif type(not_expr) == scrt.logic.LogicalAtom:
-                        delta(new_nodes, [expr])
+                        new_nodes = delta(new_nodes, [expr])
                         if not_expr.name in atom_values and atom_values[not_expr.name] is True:
                             is_paradox = True
                             break
@@ -76,20 +87,20 @@ class TableauSolver:
                         raise ValueError()
 
                 elif type(expr) == scrt.logic.LogicalAnd:
-                    delta(new_nodes, [expr.left])
-                    delta(new_nodes, [expr.right])
+                    new_nodes = delta(new_nodes, [expr.left])
+                    new_nodes = delta(new_nodes, [expr.right])
                     is_changed = True
 
                 elif type(expr) == scrt.logic.LogicalOr:
-                    delta(new_nodes, [expr.left, expr.right])
+                    new_nodes = delta(new_nodes, [expr.left, expr.right])
                     is_changed = True
 
                 elif type(expr) == scrt.logic.LogicalImplies:
-                    delta(new_nodes, [~expr.left, expr.right])
+                    new_nodes = delta(new_nodes, [~expr.left, expr.right])
                     is_changed = True
 
                 elif type(expr) == scrt.logic.LogicalAtom:
-                    delta(new_nodes, [expr])
+                    new_nodes = delta(new_nodes, [expr])
                     if expr.name in atom_values and atom_values[expr.name] is False:
                         is_paradox = True
                         break
@@ -101,11 +112,23 @@ class TableauSolver:
 
             if is_paradox is False:
                 if is_changed is True:
-                    for node in new_nodes:
-                        print("ADD NODE: " + (", ".join([str(expr) for expr in node])))
+                    for new_node in new_nodes:
+                        if graphviz is True:
+                            graph.edge("\n".join([str(expr) for expr in node]), "\n".join([str(expr) for expr in new_node]))
+                        # print("ADD NODE: " + (", ".join([str(expr) for expr in new_node])))
                     nodes += new_nodes
                 else:
+                    if graphviz is True:
+                        graph.edge("\n".join([str(expr) for expr in node]), "yes")
+                        graph.render(graph_filename)
                     return True
+            else:
+                if graphviz is True:
+                    no_counter += 1
+                    graph.node("no_"+str(no_counter), "no")
+                    graph.edge("\n".join([str(expr) for expr in node]), "no_"+str(no_counter))
 
-            print()
+            # print()
+        if graphviz is True:
+            graph.render(graph_filename)
         return False

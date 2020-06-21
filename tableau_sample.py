@@ -1,13 +1,13 @@
 from scrt.logic import LogicalAtom
 from scrt.tableau_solver import TableauSolver
 
-A = LogicalAtom('A')
-B = LogicalAtom('B')
-C = LogicalAtom('C')
-D = LogicalAtom('D')
-E = LogicalAtom('E')
+p = LogicalAtom('p')
+q = LogicalAtom('q')
+r = LogicalAtom('r')
+s = LogicalAtom('s')
 
-expr = (A & C & B & ~B)
 
-result = TableauSolver.solve(expr)
+expr = (~p) & (p | q) & (p | ~r | s) & (~q | r | s) & (p | ~q | r | s)
+
+result = TableauSolver.solve(expr, graphviz=True)
 print(result)
