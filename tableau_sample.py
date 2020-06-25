@@ -3,11 +3,7 @@ from scrt.tableau_solver import TableauSolver
 
 p = LogicalAtom('p')
 q = LogicalAtom('q')
-r = LogicalAtom('r')
-s = LogicalAtom('s')
 
-
-expr = (~p) & (p | q) & (p | ~r | s) & (~q | r | s) & (p | ~q | r | s)
-
-result = TableauSolver.solve(expr, graphviz=True)
+expr = ~(((p | q) & ~p) >> q)
+result = TableauSolver.solve(expr, graphviz=True, graph_filename='tableau')
 print(result)
